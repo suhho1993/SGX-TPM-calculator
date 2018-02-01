@@ -195,7 +195,7 @@ int TPM_calc()
 			data[len-1]='\0';
 
 			printf("%s\n", data);
-			Enclave1_TPM_calc_long(e1_enclave_id, &re_stat, (unsigned char*)data, sizeof_FILE);
+			Enclave1_TPM_calc_long(e1_enclave_id, &re_stat, (unsigned char*)data, len);
 			if(re_stat != 0x1732)
 				printf("\nTPM_CALC FAIL\n");	
 			free(data);
@@ -221,7 +221,7 @@ int TPM_calc()
 			data[len-1]='\0';
 
 			printf("size:%s\n", data);
-			Enclave1_TPM_calc_long(e1_enclave_id, &re_stat, (unsigned char *)data, sizeof_FILE);
+			Enclave1_TPM_calc_long(e1_enclave_id, &re_stat, (unsigned char *)data, len);
 			if(re_stat != 0x1732)
 				printf("\nTPM_CALC FAIL\n");	
 			free(data);

@@ -314,6 +314,7 @@ extern "C" uint32_t message_exchange_response_generator(char* decrypted_data,
 }
 
 BYTE golden_PCR[32]={0,};
+
 static void sha256_extend( BYTE* new_t)
 {
 	BYTE cat[64];
@@ -362,23 +363,21 @@ extern "C" uint32_t TPM_calc_cmd(unsigned char* buffer, size_t len)
 		return 0;
 	}
 }
-BYTE * grub_buffer;
 extern "C" uint32_t TPM_calc_grub(unsigned char* buffer, size_t len)
 {
 if(len <= MAX_GRUB){
-	grub_buffer = (BYTE*)malloc(MAX_GRUB);
+	BYTE* grub_buffer = (BYTE*)malloc(MAX_GRUB);
 	memcpy(grub_buffer, buffer,614192 );
 
-	BYTE old[32];
-	memset(old,0,sizeof(old));
 	BYTE new_t[32];
 	memset(new_t, 0, sizeof(new_t));
 	
-//	test_sha256_calc(grub_buffer, new_t);
+	SHA256_CTX ctx;
+	sha256_init(&ctx);
+	sha256_update(&ctx, grub_buffer, len);
+	sha256_final(&ctx, new_t);
+
 	sha256_extend(new_t);
-	
-	memcpy(golden_PCR, old, sizeof(old));
-	free(grub_buffer);
 	return 0x1732;
 }
 else return 0;
@@ -403,21 +402,24 @@ else return 0;
 }
 extern "C" uint32_t TPM_calc_long(unsigned char* buffer, size_t len)
 {
-if(len <= 2900){
-	BYTE *buf = (BYTE*)malloc(len);
-	memcpy(buf, buffer, len);
-
-	BYTE old[32];
-	memset(old,0,sizeof(old));
-	BYTE new_t[32];
-	memset(new_t, 0, sizeof(new_t));
-//	test_sha256_calc(buf, new_t);
-	sha256_extend(new_t);
+	if(len <= Max_long_cmd){
+		BYTE *buf = (BYTE*)malloc(len);
+		memcpy(buf, buffer, len);
+		
+		BYTE new_t[32];
+		memset(new_t, 0, sizeof(new_t));
 	
-	memcpy(golden_PCR, old, sizeof(old));
-	return 0x1732;
-}
-else return 0;
+		SHA256_CTX ctx;
+		sha256_init(&ctx);
+		sha256_update(&ctx, buf, len);
+		sha256_final(&ctx, new_t);
+
+		sha256_extend(new_t);
+		return 0x1732;
+	}
+	else {
+		return 0;
+	}
 }
 
 extern "C" uint32_t PCR_get(unsigned char* res, size_t len)
